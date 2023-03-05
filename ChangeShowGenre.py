@@ -1,20 +1,15 @@
-# python 3
-# pip install plexapi
-# 更多中文插件 请访问plexmedia.cn
-
 import urllib
 import http.client
 import json
-import sys
 from plexapi.server import PlexServer
 from plexapi.myplex import MyPlexAccount
 from plexapi.myplex import MyPlexDevice
-import Config
 
 PLEX_URL = ""
 PLEX_TOKEN = ""
 sectionNum = ""
 currenttitle = ""
+genreTags = ""
 
 def fetchPlexApi(path='', method='GET', getFormPlextv=False, token=PLEX_TOKEN, params=None):
     """a helper function that fetches data from and put data to the plex server"""
@@ -70,11 +65,11 @@ def updategenre(rating, genre):
         try:
             enggenre = tag["tag"]
             enggenre = urllib.parse.quote(enggenre.encode('utf-8'))
-            zhQuery = Config.tags[tag["tag"]]
+            zhQuery = genreTags[tag["tag"]]
             zhQuery = urllib.parse.quote(zhQuery.encode('utf-8'))
             data = fetchPlexApi("/library/sections/"+sectionNum+"/all?type=2&id="+rating +
                                 "&genre%5B2%5D.tag.tag="+zhQuery+"&genre%5B%5D.tag.tag-="+enggenre+"&", "PUT", token=PLEX_TOKEN)
-            print("\t","ChangeGenre：", currenttitle, tag["tag"], "->", Config.tags[tag["tag"]])
+            print("\t","ChangeGenre：", currenttitle, tag["tag"], "->", genreTags[tag["tag"]])
         except:
             pass
 
@@ -119,10 +114,11 @@ def loopThroughAllShows():
                 # print(title)
                 getgenre(key)
 
-def ChangeShowGenre(URL, TOKEN):
-    global PLEX_URL, PLEX_TOKEN, sectionNum
+def ChangeShowGenre(URL, TOKEN, TAGS):
+    global PLEX_URL, PLEX_TOKEN, genreTags, sectionNum
     PLEX_URL = URL
     PLEX_TOKEN = TOKEN
+    genreTags = TAGS
     plex = PlexServer(PLEX_URL, PLEX_TOKEN)
     for section in plex.library.sections():
         # 筛选出类型为剧集，语言为中文或 None 的资料库
